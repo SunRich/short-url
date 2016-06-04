@@ -1,0 +1,57 @@
+<form method="post">
+  <p>
+    <label for="link_url">链接地址</label>
+    <input name="link_url"/>
+  </p>
+  <p>
+    <label for="link_title">标题</label>
+    <input name="link_title"/>
+  </p>
+  <p>
+    <button type="submit">新增</button>
+  </p>
+</form>
+
+
+<table>
+  <thead>
+    <tr>
+      <th>
+        Key
+      </th>
+      <th>
+        链接地址
+      </th>
+      <th>
+        标题
+      </th>
+      <th>
+        点击数量
+      </th>
+      <th>
+        操作
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range $link := .}}
+      <tr>
+        <td>
+          {{ $link.Key }}
+        </td>
+        <td>
+          {{ $link.Url }}
+        </td>
+        <td>
+          {{ $link.Title }}
+        </td>
+        <td>
+          {{ $link.Count }}
+        </td>
+        <td>
+          <button>删除</button>
+        </td>
+      </tr>
+    {{end}}
+  </tbody>
+</table>
