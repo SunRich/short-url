@@ -2,6 +2,8 @@ package main
 
 import (
   "fmt"
+  "os"
+  "log"
   "strings"
   "math/rand"
   "time"
@@ -9,12 +11,28 @@ import (
   "github.com/garyburd/redigo/redis"
 )
 
+func getRedisHostAndPort() string {
+  redis_host := os.Getenv("REDIS_PORT_6379_TCP_ADDR")
+  redis_port := os.Getenv("REDIS_PORT_6379_TCP_PORT")
+  if len(redis_host) == 0 {
+    redis_host = "localhost"
+  }
+  if len(redis_port) == 0 {
+    redis_port = "6379"
+  }
+  redis_info := fmt.Sprintf("%s:%s", redis_host, redis_port)
+  log.Printf("Redis连接信息: %s", redis_info)
+  return redis_info
+}
+
+var redis_info = getRedisHostAndPort()
+
 func newPool() *redis.Pool {
   return &redis.Pool{
       MaxIdle: 3,
-      MaxActive: 10,
+      MaxActive: 1000,
       Dial: func() (redis.Conn, error) {
-        c, err := redis.Dial("tcp", ":6379")
+        c, err := redis.Dial("tcp", redis_info)
         if err != nil {
             panic(err.Error())
         }
@@ -71,7 +89,8 @@ func (s LinkAPI) Get() {
     if err := redis.ScanStruct(value, &link); err != nil {
         fmt.Println(err)
     }
-    link.Key = strings.Split(key, ":")[1]
+    linkKey := strings.Split(key, ":")[1]
+    link.Key = fmt.Sprint(s.HostString(), "/r/", linkKey)
     links = append(links, link)
   }
 
@@ -101,9 +120,10 @@ func (s LinkAPI) Post(){
 
 func main() {
   app := iris.New()
-  app.API("/links", LinkAPI{})
   app.Config().Render.Template.Layout = "layout.html"
+  app.Config().Render.Template.Directory = "templates"
 
+  app.API("/links", LinkAPI{})
   app.Get("/r/:key", func(s *iris.Context){
     queryKey := s.Param("key")
     key := fmt.Sprint("short-url:", queryKey)
@@ -115,10 +135,10 @@ func main() {
 
     if err != nil{
       s.Write("not found")
+    }else{
+      c.Do("HINCRBY", key, "count", 1)
+      s.Redirect(url)
     }
-
-    c.Do("HINCRBY", key, "count", 1)
-    s.Redirect(url)
   })
 
   app.Listen(":8001")

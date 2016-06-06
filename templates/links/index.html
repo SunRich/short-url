@@ -1,11 +1,11 @@
 <form method="post">
   <p>
     <label for="link_url">链接地址</label>
-    <input name="link_url"/>
+    <input name="link_url" required/>
   </p>
   <p>
     <label for="link_title">标题</label>
-    <input name="link_title"/>
+    <input name="link_title" required/>
   </p>
   <p>
     <button type="submit">新增</button>
@@ -13,14 +13,11 @@
 </form>
 
 
-<table>
+<table style="table-layout:fixed" width="600">
   <thead>
     <tr>
       <th>
-        Key
-      </th>
-      <th>
-        链接地址
+        跳转地址
       </th>
       <th>
         标题
@@ -29,7 +26,7 @@
         点击数量
       </th>
       <th>
-        操作
+        原链接地址
       </th>
     </tr>
   </thead>
@@ -37,10 +34,7 @@
     {{range $link := .}}
       <tr>
         <td>
-          {{ $link.Key }}
-        </td>
-        <td>
-          {{ $link.Url }}
+          <a target="_blank" href="{{$link.Url}}">http://{{ $link.Key }}</a>
         </td>
         <td>
           {{ $link.Title }}
@@ -49,7 +43,7 @@
           {{ $link.Count }}
         </td>
         <td>
-          <button>删除</button>
+          {{ $link.Url }}
         </td>
       </tr>
     {{end}}
