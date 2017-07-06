@@ -87,7 +87,6 @@ func main() {
 			panic(err)
 		}
 		var links []Link
-		fmt.Println(urlKyes)
 		for _, v := range urlKyes {
 			key := string(v.([]byte))
 			value, err := redis.Values(c.Do("HGETALL", key))
@@ -101,7 +100,6 @@ func main() {
 			}
 			linkKey := strings.Split(key, ":")[1]
 			link.Key = fmt.Sprint(s.ServerHost(), "/r/", linkKey)
-			fmt.Println(link)
 			links = append(links, link)
 		}
 		sort.Sort(ByTime(links))
