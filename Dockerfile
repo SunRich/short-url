@@ -1,5 +1,4 @@
-FROM gliderlabs/alpine
-RUN apk-install curl
+FROM scratch
 ADD main /app/
 ADD templates /app/templates
 WORKDIR /app
