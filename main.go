@@ -17,7 +17,7 @@ func getRedisHostAndPort() string {
 	redis_host := os.Getenv("REDIS_PORT_6379_TCP_ADDR")
 	redis_port := os.Getenv("REDIS_PORT_6379_TCP_PORT")
 	if len(redis_host) == 0 {
-		redis_host = "192.168.118.174"
+		redis_host = "localhost"
 	}
 	if len(redis_port) == 0 {
 		redis_port = "6379"
