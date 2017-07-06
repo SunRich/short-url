@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"sort"
 )
 
 func getRedisHostAndPort() string {
@@ -63,14 +64,20 @@ type Link struct {
 	Url   string `redis:"url"`
 	Title string `redis:"title"`
 	Count int    `redis:"count"`
+	Time  int64    `redis:"time"`
 	Key   string
 }
+type ByTime []Link
 
+func (a ByTime) Len() int           { return len(a) }
+func (a ByTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByTime) Less(i, j int) bool { return a[i].Time > a[j].Time }
 
 func main() {
 	app := iris.New()
 	app.Adapt(httprouter.New())
 	app.Adapt(view.HTML("./templates", ".html"))
+
 	app.Get("/links", func(s *iris.Context) {
 		c := pool.Get()
 		defer c.Close()
@@ -80,21 +87,24 @@ func main() {
 			panic(err)
 		}
 		var links []Link
-		leng:=len(urlKyes)
-		for i := 0; i < leng; i++ {
-			key := string(urlKyes[leng-i-1].([]byte))
+		fmt.Println(urlKyes)
+		for _, v := range urlKyes {
+			key := string(v.([]byte))
 			value, err := redis.Values(c.Do("HGETALL", key))
 			if err != nil {
 				panic(err)
 			}
+
 			var link Link
 			if err := redis.ScanStruct(value, &link); err != nil {
 				fmt.Println(err)
 			}
 			linkKey := strings.Split(key, ":")[1]
 			link.Key = fmt.Sprint(s.ServerHost(), "/r/", linkKey)
+			fmt.Println(link)
 			links = append(links, link)
 		}
+		sort.Sort(ByTime(links))
 		s.Render("links/index.html", links)
 	})
 
@@ -106,7 +116,7 @@ func main() {
 		link.Url = string(url)
 		link.Title = string(title)
 		link.Count = 0
-
+		link.Time = time.Now().Unix()
 		c := pool.Get()
 		defer c.Close()
 
